@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 
-const GEMINI_KEY = process.env.REACT_APP_GEMINI_KEY;
-
 const SYSTEM_PROMPT = `You are Mudassir, a friendly AI wealth coach for first-time investors in India. 
 You explain financial concepts in very simple language like a friendly elder sibling.
 You only educate — never give specific investment advice.
@@ -37,22 +35,19 @@ export default function Chat({ user }) {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
-              ...newMessages.map(m => ({
-                role: m.role === 'mudassir' ? 'model' : 'user',
-                parts: [{ text: m.text }]
-              }))
-            ]
-          })
-        }
-      );
+      const res = await fetch('/.netlify/functions/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+            ...newMessages.map(m => ({
+              role: m.role === 'mudassir' ? 'model' : 'user',
+              parts: [{ text: m.text }]
+            }))
+          ]
+        })
+      });
 
       if (res.status === 429) {
         const msg = "I'm getting too many requests! Please wait a moment and try again 😊";
